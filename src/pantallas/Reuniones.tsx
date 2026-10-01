@@ -6,6 +6,8 @@ import { Notas, useNotas } from "../notas";
 
 // Reuniones y las tareas que salen de ellas. Cada tarea tiene responsable, estado,
 // para cuándo estaría lista y sus notas (las mismas notas de la app, con @ y correo).
+// Las reuniones también se cargan desde la transcripción (enlace de Fathom): resumen breve
+// y tareas para las personas del equipo.
 
 export type Estado = "sin_empezar" | "iniciado" | "terminado" | "bloqueado";
 export const ESTADOS: { valor: Estado; texto: string; icono: string }[] = [
@@ -16,7 +18,7 @@ export const ESTADOS: { valor: Estado; texto: string; icono: string }[] = [
 ];
 const ESTADO = Object.fromEntries(ESTADOS.map((e) => [e.valor, e])) as Record<Estado, (typeof ESTADOS)[number]>;
 
-type Reunion = { id: string; fecha: string; titulo: string; acuerdos: string | null; creado_por: string | null };
+type Reunion = { id: string; fecha: string; titulo: string; acuerdos: string | null; enlace: string | null; creado_por: string | null };
 export type Tarea = {
   id: string; reunion_id: string | null; titulo: string; responsable: string | null; estado: Estado;
   para_cuando: string | null; creado: string; creado_por: string | null; estado_cambio: string; estado_por: string | null;
@@ -44,7 +46,7 @@ function useTablero() {
 
   const recargar = useCallback(async () => {
     const [r, t] = await Promise.all([
-      supabase.from("reuniones").select("id,fecha,titulo,acuerdos,creado_por")
+      supabase.from("reuniones").select("id,fecha,titulo,acuerdos,enlace,creado_por")
         .order("fecha", { ascending: false }).order("creado", { ascending: false }).limit(300),
       supabase.from("tareas").select("*").order("creado").limit(2000),
     ]);
@@ -219,6 +221,7 @@ function NuevaReunion({ tablero, alTerminar }: { tablero: Tablero; alTerminar: (
   const [fecha, setFecha] = useState(hoyISO());
   const [titulo, setTitulo] = useState("");
   const [acuerdos, setAcuerdos] = useState("");
+  const [enlace, setEnlace] = useState("");
   const [lista, setLista] = useState<Borrador[]>([VACIA, VACIA]);
   const [falla, setFalla] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -228,7 +231,7 @@ function NuevaReunion({ tablero, alTerminar }: { tablero: Tablero; alTerminar: (
     setGuardando(true);
     setFalla(null);
     const { data, error } = await supabase.from("reuniones")
-      .insert({ fecha, titulo: titulo.trim(), acuerdos: acuerdos.trim() || null }).select("id").single();
+      .insert({ fecha, titulo: titulo.trim(), acuerdos: acuerdos.trim() || null, enlace: enlace.trim() || null }).select("id").single();
     if (error || !data) { setGuardando(false); return setFalla(error?.message ?? "No se pudo guardar"); }
     const err = await tablero.crear(lista.map((b) => ({ ...b, reunion_id: data.id as string })));
     setGuardando(false);
@@ -243,7 +246,10 @@ function NuevaReunion({ tablero, alTerminar }: { tablero: Tablero; alTerminar: (
         <label>Fecha<input type="date" required value={fecha} onChange={(e) => setFecha(e.target.value)} /></label>
         <label className="crece">De qué fue<input required maxLength={200} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ej.: Reunión semanal de contenido" /></label>
       </div>
-      <label>Lo que se habló y se acordó
+      <label>Enlace de la transcripción <span className="sub">(opcional)</span>
+        <input type="url" pattern="https://.*" maxLength={500} value={enlace} onChange={(e) => setEnlace(e.target.value)} placeholder="https://fathom.video/…" />
+      </label>
+      <label>Resumen y acuerdos
         <textarea rows={3} value={acuerdos} onChange={(e) => setAcuerdos(e.target.value)} placeholder="Ideas, decisiones y lo que quedó pendiente…" />
       </label>
       <div>
@@ -346,6 +352,7 @@ function TarjetaReunion({ r, tareas, todas, tablero }: { r: Reunion | null; tare
             {r && capital(new Date(r.fecha + "T00:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" }))}
             {todas.length > 0 && ` · ${hechas} de ${todas.length} terminadas`}
           </div>
+          {r?.enlace && <a className="enlace transcripcion" href={r.enlace} target="_blank" rel="noopener noreferrer">🎧 Ver transcripción</a>}
         </div>
         {r && (r.creado_por === yo.email || yo.rol === "admin") && (
           <button className="icono" title="Borrar reunión" aria-label="Borrar reunión"
