@@ -254,3 +254,57 @@ label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); 
 .entrar-caja form { display: grid; gap: 10px; }
 .entrar-caja .boton { width: 100%; margin-top: 4px; }
 .selector { margin-top: 12px; }
+
+/* Propuesta de pauta */
+.propuesta .cifra { margin: 4px 0; }
+.reparto.grande { height: 44px; margin-top: 14px; }
+.por-conversion { background: var(--accent); }
+.por-atraccion { background: var(--s3); }
+.por-remarketing { background: var(--s2); }
+.por-quienes_somos { background: #8A5BB0; }
+.porciones { margin-top: 12px; }
+.porcion { border-top: 4px solid var(--line); }
+.borde-conversion { border-top-color: var(--accent); }
+.borde-atraccion { border-top-color: var(--s3); }
+.borde-remarketing { border-top-color: var(--s2); }
+.borde-quienes_somos { border-top-color: #8A5BB0; }
+.porcion-cab { display: flex; align-items: center; gap: 8px; }
+.muestra { display: inline-block; width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.porcion code { background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+
+/* Notas */
+.boton-notas { display: inline-block; margin-top: 10px; font-size: 13px; }
+.hilo { display: grid; gap: 10px; margin-top: 10px; }
+.tarjeta.hilo { margin-top: 0; }
+.nota { border-left: 3px solid var(--accent-soft); padding: 2px 0 2px 10px; }
+.tarjeta.hilo .nota + .nota { border-top: 1px solid var(--line); padding-top: 10px; }
+.nota-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; }
+.nota-borrar { margin-left: auto; }
+.nota-texto { white-space: pre-wrap; overflow-wrap: anywhere; margin: 4px 0 0; }
+.nota-aviso { margin-top: 2px; }
+.error-peq { color: var(--red); }
+.insignia.sin-mayus { text-transform: none; text-decoration: none; white-space: normal; }
+.mencion { background: var(--accent-soft); color: var(--accent); font-weight: 600; padding: 0 4px; border-radius: 4px; }
+.escribir { display: grid; gap: 8px; }
+.escribir-caja { position: relative; }
+.escribir-caja textarea { width: 100%; font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+.sugerencias {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 20; margin: 4px 0 0; padding: 4px;
+  list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.12); max-height: 260px; overflow-y: auto;
+}
+.sugerencias li { padding: 8px 10px; border-radius: 8px; cursor: pointer; overflow-wrap: anywhere; }
+.sugerencias li.activa { background: var(--accent-soft); }
+.escribir-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.escribir-pie .crece { flex: 1; min-width: 120px; }
+
+/* Globo de menciones nuevas */
+.globo {
+  display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 99px;
+  background: var(--red); color: #fff; font-size: 11px; line-height: 18px; text-align: center;
+}
+.nav-abajo a { position: relative; }
+.nav-abajo .globo { position: absolute; top: 0; left: 50%; margin-left: 6px; }
+.quien a { color: var(--ink-2); text-decoration: none; font-weight: 500; }
+.rejilla.porciones { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+@media (max-width: 520px) { .rejilla.porciones { grid-template-columns: 1fr; } }

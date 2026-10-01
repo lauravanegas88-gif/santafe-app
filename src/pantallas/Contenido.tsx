@@ -3,6 +3,7 @@ import { supabase } from "../supabase";
 import { useDatos } from "../lib/datos";
 import { capital, dia, INDICADORES, num } from "../lib/formato";
 import { Cargando, Chips, Falla, Puntos, Seccion, Vacio } from "../ui";
+import { Notas } from "../notas";
 
 type Pub = {
   id: string; formato: string | null; permalink: string | null; publicada: string; titulo: string;
@@ -121,6 +122,7 @@ function Tarjeta({ p }: { p: Pub }) {
       </div>
       {consejo && <p className="consejo">{consejo}</p>}
       {p.permalink && <a className="enlace" href={p.permalink} target="_blank" rel="noreferrer">Ver en Instagram →</a>}
+      <Notas contexto={`publicacion:${p.id}`} titulo={`Publicación · ${(p.titulo || "sin texto").slice(0, 80)}`} ruta="contenido" />
     </article>
   );
 }

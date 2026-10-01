@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { supabase, type Miembro } from "../supabase";
+import { supabase } from "../supabase";
 import { useDatos } from "../lib/datos";
 import { capital, diaHora, pesos } from "../lib/formato";
 import { Cargando, Chips, Falla, Seccion, Vacio } from "../ui";
+import { Notas } from "../notas";
 
 type Origen = {
   tipo: string; pieza_id: string; nombre: string; leads: number; calificados: number; ventas: number;
@@ -24,8 +25,7 @@ function whatsapp(t: string | null) {
   return `https://wa.me/${d.length === 10 && d.startsWith("3") ? "57" + d : d}`;
 }
 
-export default function Leads({ miembro }: { miembro: Miembro }) {
-  const veContacto = miembro.rol !== "equipo";
+export default function Leads() {
   const origenes = useDatos(() => supabase.from("v_origenes").select("*").order("leads", { ascending: false }).limit(50));
 
   return (
@@ -61,9 +61,7 @@ export default function Leads({ miembro }: { miembro: Miembro }) {
         )}
       </Seccion>
 
-      {veContacto ? <ListaLeads /> : (
-        <p className="aviso">Los nombres y teléfonos de los leads solo los ven ventas y administración.</p>
-      )}
+      <ListaLeads />
     </>
   );
 }
@@ -109,6 +107,7 @@ function ListaLeads() {
                   {l.telefono && <a className="boton peq secundario" href={`tel:${l.telefono}`}>Llamar</a>}
                   {l.email && <a className="boton peq secundario" href={`mailto:${l.email}`}>Correo</a>}
                 </div>
+                <Notas contexto={`lead:${l.id}`} titulo={`Lead · ${l.nombre ?? "sin nombre"}`} ruta="leads" />
               </article>
             );
           })}

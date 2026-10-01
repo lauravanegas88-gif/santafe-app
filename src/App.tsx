@@ -8,9 +8,11 @@ import Contenido from "./pantallas/Contenido";
 import Pauta from "./pantallas/Pauta";
 import Leads from "./pantallas/Leads";
 import Equipo from "./pantallas/Equipo";
+import Notas from "./pantallas/Notas";
+import { leerVisto, NotasProvider, useNotas } from "./notas";
 import { Cargando } from "./ui";
 
-type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "equipo";
+type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "notas" | "equipo";
 
 const ICONOS: Record<Ruta, string> = {
   hoy: "M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10",
@@ -18,11 +20,12 @@ const ICONOS: Record<Ruta, string> = {
   contenido: "M4 4h16v16H4zM4 15l5-5 4 4 3-3 4 4",
   pauta: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   leads: "M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1M9 10a3 3 0 100-6 3 3 0 000 6zM22 19v-1a4 4 0 00-3-3.9M16 4.1a3 3 0 010 5.8",
+  notas: "M21 12a8 8 0 01-11.6 7.1L3 21l1.9-6.4A8 8 0 1121 12z",
   equipo: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z",
 };
 
 const NOMBRES: Record<Ruta, string> = {
-  hoy: "Hoy", estrategia: "Estrategia", contenido: "Contenido", pauta: "Pauta", leads: "Leads", equipo: "Equipo",
+  hoy: "Hoy", estrategia: "Estrategia", contenido: "Contenido", pauta: "Pauta", leads: "Leads", notas: "Notas", equipo: "Equipo",
 };
 
 function leerRuta(): Ruta {
@@ -81,20 +84,22 @@ export default function App() {
     );
   }
 
-  const rutas: Ruta[] = ["hoy", "estrategia", "contenido", "pauta", "leads", ...(miembro.rol === "admin" ? ["equipo" as Ruta] : [])];
-  const actual = rutas.includes(ruta) ? ruta : "hoy";
+  // Todos ven todo. Abajo (celular) van las 6 principales; Equipo se abre desde el nombre, arriba.
+  const rutas: Ruta[] = ["hoy", "estrategia", "contenido", "pauta", "leads", "notas"];
+  const actual = ruta;
 
   return (
+    <NotasProvider yo={miembro}>
     <div className="app">
       <header className="cabecera">
         <a className="marca" href="#/hoy">SantaFe <span>equipo</span></a>
         <nav className="nav-arriba">
-          {rutas.map((r) => (
-            <a key={r} href={`#/${r}`} className={r === actual ? "activo" : ""}>{NOMBRES[r]}</a>
+          {[...rutas, "equipo" as Ruta].map((r) => (
+            <a key={r} href={`#/${r}`} className={r === actual ? "activo" : ""}>{NOMBRES[r]}{r === "notas" && <Nuevas />}</a>
           ))}
         </nav>
         <div className="quien">
-          <span title={miembro.email}>{miembro.nombre?.split(" ")[0] ?? miembro.email}</span>
+          <a href="#/equipo" title={`${miembro.email} · ver el equipo`}>{miembro.nombre?.split(" ")[0] ?? miembro.email}</a>
           <button className="enlace" onClick={() => supabase.auth.signOut()}>Salir</button>
         </div>
       </header>
@@ -103,8 +108,9 @@ export default function App() {
         {actual === "hoy" && <Hoy />}
         {actual === "estrategia" && <Estrategia miembro={miembro} />}
         {actual === "contenido" && <Contenido />}
-        {actual === "pauta" && <Pauta />}
-        {actual === "leads" && <Leads miembro={miembro} />}
+        {actual === "pauta" && <Pauta miembro={miembro} />}
+        {actual === "leads" && <Leads />}
+        {actual === "notas" && <Notas />}
         {actual === "equipo" && <Equipo miembro={miembro} />}
       </main>
 
@@ -113,9 +119,19 @@ export default function App() {
           <a key={r} href={`#/${r}`} className={r === actual ? "activo" : ""}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONOS[r]} /></svg>
             <span>{NOMBRES[r]}</span>
+            {r === "notas" && <Nuevas />}
           </a>
         ))}
       </nav>
     </div>
+    </NotasProvider>
   );
+}
+
+// Número de veces que me mencionaron desde la última vez que abrí Notas.
+function Nuevas() {
+  const { notas, yo } = useNotas();
+  const visto = leerVisto();
+  const n = notas.filter((x) => x.menciones.includes(yo.email) && x.creado > visto).length;
+  return n ? <b className="globo" aria-label={`${n} menciones nuevas`}>{n}</b> : null;
 }

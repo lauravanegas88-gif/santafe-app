@@ -10,6 +10,8 @@ export function pesos(v: number | null | undefined) {
   return `$${n0.format(v)}`;
 }
 
+export const dolares = (v: number | null | undefined) => (v == null ? "—" : `USD ${n0.format(v)}`);
+
 // "2026-10-01" se lee como fecha local, no UTC (si no, en Colombia sale el día anterior).
 const fechaLocal = (s: string) => (s.length === 10 ? new Date(s + "T00:00:00") : new Date(s));
 

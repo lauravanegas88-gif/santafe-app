@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import { supabase } from "../supabase";
+import { supabase, type Miembro } from "../supabase";
 import { useDatos } from "../lib/datos";
 import { capital, ETAPAS, mesActual, mesLargo, num, OBJETIVOS, pesos } from "../lib/formato";
 import { Avance, Cargando, Falla, Seccion, Vacio } from "../ui";
+import PropuestaPauta from "../PropuestaPauta";
+import { Notas } from "../notas";
 
 type Fila = {
   mes: string; campana_id: string; nombre: string; estado: string | null; objetivo_meta: string | null;
@@ -12,7 +14,7 @@ type Fila = {
 };
 type Reparto = { etapa: string; nombre: string; porcentaje: number };
 
-export default function Pauta() {
+export default function Pauta({ miembro }: { miembro: Miembro }) {
   const filas = useDatos(() => supabase.from("v_pauta_campanas").select("*").order("mes", { ascending: false }));
   const metas = useDatos(() => supabase.from("metas_mes").select("mes,pauta"));
   const reparto = useDatos(() => supabase.from("reparto_pauta").select("etapa,nombre,porcentaje"));
@@ -54,11 +56,13 @@ export default function Pauta() {
           nota={leads ? `${pesos(inversion / leads)} cada uno` : "Llegan cuando arranquen los anuncios con formulario"} />
       </div>
 
-      <Seccion titulo="Reparto por etapa" sub="Lo real contra el plan">
+      <PropuestaPauta admin={miembro.rol === "admin"} alGuardar={metas.recargar} />
+
+      <Seccion titulo="Lo real contra la propuesta" sub="Cómo se repartió lo invertido este mes, por etapa del nombre de la campaña">
         <div className="tarjeta">
           {plan.length > 0 && inversion > 0 ? (
             <table className="tabla compacta">
-              <thead><tr><th>Etapa</th><th>Plan</th><th>Real</th><th>Invertido</th></tr></thead>
+              <thead><tr><th>Etapa</th><th>Propuesta</th><th>Real</th><th>Invertido</th></tr></thead>
               <tbody>
                 {[...[...plan].sort((a, b) => ["tofu", "mofu", "bofu"].indexOf(a.etapa) - ["tofu", "mofu", "bofu"].indexOf(b.etapa)),
                   { etapa: "sin", nombre: "Sin nomenclatura", porcentaje: 0 }].map((r) => {
@@ -112,6 +116,7 @@ export default function Pauta() {
                           {f.rango_precio && <span className="insignia">{f.rango_precio}</span>}
                         </div>
                       ) : <span className="insignia alerta">sin nomenclatura</span>}
+                      <Notas contexto={`campana:${f.campana_id}`} titulo={`Campaña ${f.nombre}`} ruta="pauta" />
                     </td>
                     <td>{OBJETIVOS[f.objetivo_meta ?? ""] ?? f.objetivo_meta ?? "—"}</td>
                     <td>{pesos(f.inversion)}</td>
@@ -124,6 +129,12 @@ export default function Pauta() {
             </table>
           </div>
         )}
+      </Seccion>
+
+      <Seccion titulo="Notas de la pauta del mes">
+        <div className="tarjeta">
+          <Notas contexto={`pauta:${elegido}`} titulo={`Pauta de ${mesLargo(elegido)}`} ruta="pauta" abierto />
+        </div>
       </Seccion>
     </>
   );

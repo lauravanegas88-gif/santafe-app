@@ -3,13 +3,16 @@ import { supabase, type Miembro, type Rol } from "../supabase";
 import { useDatos } from "../lib/datos";
 import { Cargando, Falla, Seccion } from "../ui";
 
+// Todos ven lo mismo. Administración además edita la estrategia y maneja el equipo.
+// "ventas" queda por compatibilidad: hoy ve y hace lo mismo que "equipo".
 const ROLES: { valor: Rol; texto: string; que: string }[] = [
-  { valor: "equipo", texto: "Equipo", que: "Ve cifras y resultados, sin nombres ni teléfonos de clientes" },
-  { valor: "ventas", texto: "Ventas", que: "Ve todo, incluidos nombres y teléfonos de los leads" },
+  { valor: "equipo", texto: "Equipo", que: "Ve todo y deja notas" },
   { valor: "admin", texto: "Administración", que: "Ve todo, edita la estrategia y maneja el equipo" },
 ];
+const nombreRol = (r: Rol) => (r === "admin" ? "Administración" : "Equipo");
 
 export default function Equipo({ miembro }: { miembro: Miembro }) {
+  const admin = miembro.rol === "admin";
   const { datos, error, cargando, recargar } = useDatos(() => supabase.from("equipo").select("email,nombre,rol").order("nombre"));
   const [email, setEmail] = useState("");
   const [nombre, setNombre] = useState("");
@@ -41,12 +44,14 @@ export default function Equipo({ miembro }: { miembro: Miembro }) {
   return (
     <>
       <div className="titular">
-        <p className="sobre">Solo administración</p>
+        <p className="sobre">Equipo</p>
         <h1>Quién entra a la app</h1>
-        <p className="sub">Agrega el correo de la persona. Ella entra con ese correo y le llega un enlace, sin contraseña.</p>
+        <p className="sub">{admin
+          ? "Agrega el correo de la persona. Entra con ese correo y le llega un enlace, sin contraseña."
+          : "Todos ven lo mismo. Para avisarle a alguien, déjale una nota con @ y su nombre."}</p>
       </div>
 
-      <Seccion titulo="Agregar a alguien">
+      {admin && <Seccion titulo="Agregar a alguien">
         <form className="tarjeta formulario" onSubmit={agregar}>
           <label>Correo<input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nombre@correo.com" /></label>
           <label>Nombre<input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" /></label>
@@ -59,7 +64,7 @@ export default function Equipo({ miembro }: { miembro: Miembro }) {
           {falla && <p className="falla">{falla}</p>}
           <button className="boton">Agregar</button>
         </form>
-      </Seccion>
+      </Seccion>}
 
       <Seccion titulo="El equipo" sub={`${(datos ?? []).length} personas con acceso`}>
         <Falla error={error} />
@@ -71,9 +76,11 @@ export default function Equipo({ miembro }: { miembro: Miembro }) {
                   <b>{m.nombre ?? m.email}</b>
                   <div className="sub">{m.email}</div>
                 </div>
-                {m.email === miembro.email ? <span className="insignia">Tú · Administración</span> : (
+                {m.email === miembro.email ? <span className="insignia">Tú · {nombreRol(m.rol)}</span> : !admin ? (
+                  <span className="insignia">{nombreRol(m.rol)}</span>
+                ) : (
                   <>
-                    <select value={m.rol} onChange={(e) => cambiarRol(m, e.target.value as Rol)} aria-label="Rol">
+                    <select value={m.rol === "ventas" ? "equipo" : m.rol} onChange={(e) => cambiarRol(m, e.target.value as Rol)} aria-label="Rol">
                       {ROLES.map((r) => <option key={r.valor} value={r.valor}>{r.texto}</option>)}
                     </select>
                     <button className="enlace peligro" onClick={() => quitar(m)}>Quitar</button>

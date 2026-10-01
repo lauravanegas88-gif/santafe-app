@@ -3,6 +3,8 @@ import { supabase, type Miembro } from "../supabase";
 import { useDatos } from "../lib/datos";
 import { capital, dia, INDICADORES, mesLargo, pesos } from "../lib/formato";
 import { Cargando, Falla, Md, Seccion } from "../ui";
+import PropuestaPauta from "../PropuestaPauta";
+import { Notas } from "../notas";
 
 type Parte = { id: string; orden: number; titulo: string; contenido: string; actualizado: string; actualizado_por: string | null };
 type MetaMes = {
@@ -12,7 +14,6 @@ type MetaMes = {
 type Barrio = { barrio: string; nombre: string; bloque: number; foco: number; nota: string | null };
 type Bloque = { bloque: number; nombre: string; nota: string | null };
 type Linea = { linea: string; nombre: string; objetivo: string; indicador: string; orden: number };
-type Reparto = { etapa: string; nombre: string; porcentaje: number; que_hace: string | null };
 
 const COLUMNAS: { k: keyof MetaMes; t: string }[] = [
   { k: "ventas", t: "Ventas" },
@@ -31,7 +32,6 @@ export default function Estrategia({ miembro }: { miembro: Miembro }) {
   const barrios = useDatos(() => supabase.from("barrios_foco").select("*").order("bloque").order("foco").order("nombre"));
   const bloques = useDatos(() => supabase.from("bloques_precio").select("*").order("bloque"));
   const lineas = useDatos(() => supabase.from("lineas_contenido").select("*").order("orden"));
-  const reparto = useDatos(() => supabase.from("reparto_pauta").select("*"));
 
   if (partes.cargando) return <Cargando />;
   const lista = (partes.datos ?? []) as Parte[];
@@ -44,7 +44,7 @@ export default function Estrategia({ miembro }: { miembro: Miembro }) {
         <Barrios barrios={(barrios.datos ?? []) as Barrio[]} bloques={(bloques.datos ?? []) as Bloque[]} />
       </>
     ),
-    pauta: <RepartoPauta filas={(reparto.datos ?? []) as Reparto[]} />,
+    pauta: <PropuestaPauta admin={admin} alGuardar={metas.recargar} />,
   };
 
   return (
@@ -103,6 +103,7 @@ function ParteTexto({ parte, admin, quien, recargar }: { parte: Parte; admin: bo
         <div className="tarjeta">
           <Md texto={parte.contenido} />
           {parte.actualizado_por && <p className="sub pie">Editado {dia(parte.actualizado)} por {parte.actualizado_por}</p>}
+          <Notas contexto={`estrategia:${parte.id}`} titulo={`Estrategia · ${parte.titulo}`} ruta="estrategia" />
         </div>
       )}
     </Seccion>
@@ -157,6 +158,7 @@ function Metas({ filas, admin, recargar }: { filas: MetaMes[]; admin: boolean; r
           </tbody>
         </table>
       </div>
+      <Notas contexto="estrategia:metas" titulo="Metas por mes" ruta="estrategia" />
       {editando && (
         <div className="botones">
           {error && <p className="falla">{error}</p>}
@@ -206,25 +208,6 @@ function Barrios({ barrios, bloques }: { barrios: Barrio[]; bloques: Bloque[] })
             })}
           </div>
         ))}
-      </div>
-    </Seccion>
-  );
-}
-
-function RepartoPauta({ filas }: { filas: Reparto[] }) {
-  const orden = ["tofu", "mofu", "bofu"];
-  const lista = [...filas].sort((a, b) => orden.indexOf(a.etapa) - orden.indexOf(b.etapa));
-  return (
-    <Seccion titulo="Reparto de cada peso de pauta">
-      <div className="tarjeta">
-        <div className="reparto">
-          {lista.map((r) => <span key={r.etapa} className={`et-${r.etapa}`} style={{ flexGrow: r.porcentaje }}>{r.porcentaje} %</span>)}
-        </div>
-        <ul className="leyenda">
-          {lista.map((r) => (
-            <li key={r.etapa}><i className={`et-${r.etapa}`} /><b>{r.nombre} · {r.porcentaje} %.</b> {r.que_hace}</li>
-          ))}
-        </ul>
       </div>
     </Seccion>
   );

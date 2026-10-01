@@ -2,6 +2,7 @@ import { supabase } from "../supabase";
 import { useDatos } from "../lib/datos";
 import { dia, hace, mesActual, mesLargo, num, pesos, capital } from "../lib/formato";
 import { Avance, Cargando, Falla, Seccion, Vacio } from "../ui";
+import { Notas } from "../notas";
 
 type Mes = {
   mes: string; fase: string | null; meta_ventas: number | null; meta_formularios_propietarios: number | null;
@@ -23,6 +24,7 @@ const MOTORES: Record<string, string> = {
   "webhook-manychat": "Mensajes (ManyChat)",
   vigilante: "Vigilante",
   "sync-ventas": "Ventas",
+  "avisar-menciones": "Correos de las notas (@)",
 };
 
 export default function Hoy() {
@@ -130,6 +132,12 @@ export default function Hoy() {
               </div>
             </div>
           )}
+        </div>
+      </Seccion>
+
+      <Seccion titulo="Notas del equipo" sub="Para todo el equipo. Escribe @ y elige a alguien para avisarle por correo.">
+        <div className="tarjeta">
+          <Notas contexto="general" titulo="Nota general" ruta="hoy" abierto />
         </div>
       </Seccion>
     </>
