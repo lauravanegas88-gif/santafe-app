@@ -479,6 +479,11 @@ label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-2); 
 .campos-tarea .campo-titulo { grid-column: 1 / -1; }
 .campos-tarea select, .campos-tarea input[type="date"] { width: 100%; padding: 8px 10px; font-size: 14px; }
 @media (min-width: 700px) { .campos-tarea { grid-template-columns: minmax(0, 1fr) 170px 160px; } .campos-tarea .campo-titulo { grid-column: auto; } }
+.campos-tarea .pista-persona { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--ink-2); background: var(--sol-soft); border-radius: 10px; padding: 6px 10px; }
+.desde-fathom { display: grid; gap: 8px; background: var(--bg-2); border: 2px dashed var(--sol); border-radius: 18px; padding: 12px 14px; }
+.desde-fathom input, .desde-fathom textarea { width: 100%; }
+.desde-fathom .botones { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.desde-fathom .sub { margin: 0; }
 .form-tarea { margin: 10px 0 4px; padding: 12px; border-radius: 16px; background: var(--bg); }
 .form-tarea .botones { margin-top: 10px; }
 

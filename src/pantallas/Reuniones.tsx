@@ -23,7 +23,8 @@ export type Tarea = {
   id: string; reunion_id: string | null; titulo: string; responsable: string | null; estado: Estado;
   para_cuando: string | null; creado: string; creado_por: string | null; estado_cambio: string; estado_por: string | null;
 };
-type Borrador = { titulo: string; responsable: string; para_cuando: string };
+// `persona`: el nombre que se dijo en la reunión, cuando lo trae el análisis de la transcripción.
+type Borrador = { titulo: string; responsable: string; para_cuando: string; persona?: string };
 const VACIA: Borrador = { titulo: "", responsable: "", para_cuando: "" };
 
 function hoyISO() {
@@ -132,6 +133,9 @@ function CamposTarea({ b, cambiar, autoFocus = false }: { b: Borrador; cambiar: 
         {equipo.map((p) => <option key={p.email} value={p.email}>{p.nombre ?? p.email}</option>)}
       </select>
       <input type="date" value={b.para_cuando} onChange={(e) => cambiar({ ...b, para_cuando: e.target.value })} aria-label="Para cuándo" title="Para cuándo" />
+      {b.persona && !b.responsable && (
+        <p className="pista-persona">En la reunión se dijo «{b.persona}», pero no está en el equipo de la app. Elige a alguien o agrégalo en Equipo.</p>
+      )}
     </div>
   );
 }
@@ -225,13 +229,43 @@ function NuevaReunion({ tablero, alTerminar }: { tablero: Tablero; alTerminar: (
   const [lista, setLista] = useState<Borrador[]>([VACIA, VACIA]);
   const [falla, setFalla] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [pegarTexto, setPegarTexto] = useState(false);
+  const [transcripcion, setTranscripcion] = useState("");
+  const [leyendo, setLeyendo] = useState(false);
+  const [leida, setLeida] = useState(false);
+
+  // Lee la transcripción (enlace de Fathom o texto pegado) y llena el formulario para revisarlo.
+  async function analizar() {
+    setLeyendo(true);
+    setFalla(null);
+    const { data, error } = await supabase.functions.invoke("analizar-reunion", {
+      body: pegarTexto ? { texto: transcripcion, enlace: enlace.trim() || undefined } : { enlace: enlace.trim() },
+    });
+    setLeyendo(false);
+    let msg = data?.error as string | undefined;
+    if (error && !msg) {
+      const ctx = (error as { context?: Response }).context;
+      msg = (await ctx?.json?.().catch(() => null))?.error ?? error.message;
+    }
+    if (msg) return setFalla(msg);
+    const a = data as { fecha: string; titulo: string; enlace: string | null; resumen: string;
+      tareas: { titulo: string; responsable: string | null; persona: string; para_cuando: string | null }[] };
+    setFecha(a.fecha);
+    setTitulo(a.titulo);
+    if (a.enlace) setEnlace(a.enlace);
+    setAcuerdos(a.resumen);
+    setLista(a.tareas.length ? a.tareas.map((t) => ({
+      titulo: t.titulo, responsable: t.responsable ?? "", para_cuando: t.para_cuando ?? "", persona: t.persona,
+    })) : [VACIA]);
+    setLeida(true);
+  }
 
   async function guardar(e: FormEvent) {
     e.preventDefault();
     setGuardando(true);
     setFalla(null);
     const { data, error } = await supabase.from("reuniones")
-      .insert({ fecha, titulo: titulo.trim(), acuerdos: acuerdos.trim() || null, enlace: enlace.trim() || null }).select("id").single();
+      .insert({ fecha, titulo: titulo.trim(), acuerdos: acuerdos.trim() || null, enlace: /^https:\/\/\S+$/.test(enlace.trim()) ? enlace.trim() : null }).select("id").single();
     if (error || !data) { setGuardando(false); return setFalla(error?.message ?? "No se pudo guardar"); }
     const err = await tablero.crear(lista.map((b) => ({ ...b, reunion_id: data.id as string })));
     setGuardando(false);
@@ -242,13 +276,30 @@ function NuevaReunion({ tablero, alTerminar }: { tablero: Tablero; alTerminar: (
   return (
     <form className="tarjeta nueva-reunion" onSubmit={guardar}>
       <h2>✨ Nueva reunión</h2>
+      <div className="desde-fathom">
+        <div className="etq">🎧 Desde la transcripción</div>
+        {pegarTexto ? (
+          <textarea rows={5} value={transcripcion} onChange={(e) => setTranscripcion(e.target.value)}
+            placeholder="Pega aquí el texto de la transcripción…" aria-label="Texto de la transcripción" />
+        ) : (
+          <input type="url" value={enlace} onChange={(e) => setEnlace(e.target.value)}
+            placeholder="Pega el enlace de Fathom: https://fathom.video/…" aria-label="Enlace de Fathom" />
+        )}
+        <div className="botones">
+          <button type="button" className="boton peq" onClick={analizar}
+            disabled={leyendo || (pegarTexto ? transcripcion.trim().length < 50 : !/^https:\/\/\S+/.test(enlace.trim()))}>
+            {leyendo ? "Leyendo la reunión… (puede tardar un minuto)" : "Leer y sacar tareas"}
+          </button>
+          <button type="button" className="enlace" onClick={() => setPegarTexto(!pegarTexto)}>
+            {pegarTexto ? "Mejor pego el enlace" : "Prefiero pegar el texto"}
+          </button>
+        </div>
+        {leida && <p className="sub">✅ Listo. Revisa el resumen y las tareas, corrige lo que haga falta y guarda.</p>}
+      </div>
       <div className="fila-campos">
         <label>Fecha<input type="date" required value={fecha} onChange={(e) => setFecha(e.target.value)} /></label>
         <label className="crece">De qué fue<input required maxLength={200} value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ej.: Reunión semanal de contenido" /></label>
       </div>
-      <label>Enlace de la transcripción <span className="sub">(opcional)</span>
-        <input type="url" pattern="https://.*" maxLength={500} value={enlace} onChange={(e) => setEnlace(e.target.value)} placeholder="https://fathom.video/…" />
-      </label>
       <label>Resumen y acuerdos
         <textarea rows={3} value={acuerdos} onChange={(e) => setAcuerdos(e.target.value)} placeholder="Ideas, decisiones y lo que quedó pendiente…" />
       </label>
