@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { supabase, type Miembro } from "./supabase";
 import { hace } from "./lib/formato";
+import { Avatar } from "./ui";
 
 // Notas del equipo. Se cargan una vez para toda la app y cada parte filtra las suyas por `contexto`.
 // Si el texto lleva @correo de alguien del equipo, la base le manda un correo (función avisar-menciones).
 
-export type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "notas";
+export type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "notas" | "reuniones";
 export type Nota = {
   id: string; creado: string; autor_email: string; texto: string; contexto: string;
   contexto_titulo: string | null; ruta: Ruta; menciones: string[]; avisados: string[] | null; aviso_error: string | null;
@@ -107,6 +108,7 @@ export function TarjetaNota({ n, conContexto = false }: { n: Nota; conContexto?:
   return (
     <div className="nota">
       <div className="nota-cab">
+        <Avatar email={n.autor_email} nombre={nombreDe(equipo, n.autor_email)} peq />
         <b>{nombreDe(equipo, n.autor_email)}</b>
         <span className="sub">{hace(n.creado)}</span>
         {conContexto && n.contexto_titulo && <a className="insignia sin-mayus" href={`#/${n.ruta}`}>{n.contexto_titulo}</a>}
@@ -121,8 +123,8 @@ export function TarjetaNota({ n, conContexto = false }: { n: Nota; conContexto?:
 }
 
 // Caja para escribir con sugerencias al teclear @.
-export function Escribir({ contexto, titulo, ruta, alPublicar, enfocar = false }: {
-  contexto: string; titulo: string; ruta: Ruta; alPublicar?: () => void; enfocar?: boolean;
+export function Escribir({ contexto, titulo, ruta, alPublicar, enfocar = false, pista }: {
+  contexto: string; titulo: string; ruta: Ruta; alPublicar?: () => void; enfocar?: boolean; pista?: string;
 }) {
   const { equipo, yo, publicar } = useNotas();
   const [texto, setTexto] = useState("");
@@ -195,7 +197,7 @@ export function Escribir({ contexto, titulo, ruta, alPublicar, enfocar = false }
   return (
     <div className="escribir">
       <div className="escribir-caja">
-        <textarea ref={ref} rows={2} value={texto} placeholder="Escribe una nota. Usa @ para avisarle a alguien por correo."
+        <textarea ref={ref} rows={2} value={texto} placeholder={pista ?? "Escribe una nota. Usa @ para avisarle a alguien por correo."}
           onChange={(e) => { setTexto(e.target.value); leer(e.target.value, e.target.selectionStart); }}
           onClick={(e) => leer(texto, e.currentTarget.selectionStart)}
           onKeyDown={tecla} onBlur={() => setTimeout(() => setSug(null), 150)} />
@@ -221,23 +223,25 @@ export function Escribir({ contexto, titulo, ruta, alPublicar, enfocar = false }
 }
 
 // Hilo de notas de una parte de la app. Cerrado muestra solo el botón con el número de notas.
-export function Notas({ contexto, titulo, ruta, abierto = false }: { contexto: string; titulo: string; ruta: Ruta; abierto?: boolean }) {
+export function Notas({ contexto, titulo, ruta, abierto = false, enfocar = false, pista, texto }: {
+  contexto: string; titulo: string; ruta: Ruta; abierto?: boolean; enfocar?: boolean; pista?: string; texto?: string;
+}) {
   const { notas } = useNotas();
   const mias = notas.filter((n) => n.contexto === contexto);
   const [ver, setVer] = useState(abierto);
-  const [escribiendo, setEscribiendo] = useState(false);
+  const [escribiendo, setEscribiendo] = useState(enfocar);
 
   if (!ver) {
     return (
       <button className="enlace boton-notas" onClick={() => { setVer(true); setEscribiendo(mias.length === 0); }}>
-        💬 {mias.length ? `${mias.length} ${mias.length === 1 ? "nota" : "notas"}` : "Agregar nota"}
+        💬 {mias.length ? `${mias.length} ${mias.length === 1 ? "nota" : "notas"}` : (texto ?? "Agregar nota")}
       </button>
     );
   }
   return (
     <div className="hilo">
       {[...mias].reverse().map((n) => <TarjetaNota key={n.id} n={n} />)}
-      <Escribir contexto={contexto} titulo={titulo} ruta={ruta} enfocar={escribiendo} />
+      <Escribir contexto={contexto} titulo={titulo} ruta={ruta} enfocar={escribiendo} pista={pista} />
       {!abierto && <button className="enlace sub" onClick={() => setVer(false)}>Ocultar notas</button>}
     </div>
   );

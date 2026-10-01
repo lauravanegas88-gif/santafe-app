@@ -3,6 +3,7 @@ import { useDatos } from "../lib/datos";
 import { dia, hace, mesActual, mesLargo, num, pesos, capital } from "../lib/formato";
 import { Avance, Cargando, Falla, Seccion, Vacio } from "../ui";
 import { Notas } from "../notas";
+import { MisTareas } from "./Reuniones";
 
 type Mes = {
   mes: string; fase: string | null; meta_ventas: number | null; meta_formularios_propietarios: number | null;
@@ -68,6 +69,8 @@ export default function Hoy() {
       ) : (
         <Vacio>Este mes no tiene metas. Las metas van de octubre de 2026 a marzo de 2027.</Vacio>
       )}
+
+      <MisTareas />
 
       {plan.length > 0 && (
         <Seccion titulo={`Las ${metaPlan} ventas del plan`} sub={`${capital(mesLargo(plan[0].mes))} a ${mesLargo(plan[plan.length - 1].mes)}`}>

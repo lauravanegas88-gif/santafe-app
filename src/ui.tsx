@@ -73,6 +73,16 @@ export function Md({ texto }: { texto: string }) {
   return <div className="md" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
+// Círculo con iniciales. El color sale del correo, así cada persona tiene siempre el suyo.
+const COLORES = ["coral", "mar", "sol", "lila", "menta", "cielo"];
+export function Avatar({ email, nombre, peq = false }: { email: string | null; nombre?: string | null; peq?: boolean }) {
+  if (!email) return <span className={`avatar nadie${peq ? " peq" : ""}`} aria-hidden="true">?</span>;
+  let h = 0;
+  for (const c of email) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const ini = (nombre || email).split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  return <span className={`avatar ${COLORES[h % COLORES.length]}${peq ? " peq" : ""}`} title={nombre ?? email} aria-hidden="true">{ini}</span>;
+}
+
 // Nota de 1 a 5 como puntos.
 export function Puntos({ nota }: { nota: number | null }) {
   if (nota == null) return <span className="puntos sin">sin datos</span>;
