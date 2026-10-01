@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { supabase } from "../supabase";
+import { Logo } from "../ui";
 
 export default function Entrar() {
   const [email, setEmail] = useState("");
@@ -27,7 +28,7 @@ export default function Entrar() {
   return (
     <div className="entrar">
       <div className="entrar-caja">
-        <div className="marca grande">SantaFe</div>
+        <div className="marca grande"><Logo /></div>
         <h1>La estrategia del equipo, en un solo lugar</h1>
         {estado === "enviado" ? (
           <>

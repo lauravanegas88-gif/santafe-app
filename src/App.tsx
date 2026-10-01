@@ -11,7 +11,7 @@ import Equipo from "./pantallas/Equipo";
 import Notas from "./pantallas/Notas";
 import Reuniones from "./pantallas/Reuniones";
 import { leerVisto, NotasProvider, useNotas } from "./notas";
-import { Avatar, Cargando } from "./ui";
+import { Avatar, Cargando, Logo } from "./ui";
 
 type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "reuniones" | "notas" | "equipo";
 
@@ -77,7 +77,7 @@ export default function App() {
     return (
       <div className="entrar">
         <div className="entrar-caja">
-          <div className="marca grande">SantaFe</div>
+          <div className="marca grande"><Logo /></div>
           <h1>Todavía no tienes acceso</h1>
           <p>Entraste como <b>{sesion.user.email}</b>, pero ese correo no está en el equipo. Pídele a Laura que lo agregue y vuelve a entrar.</p>
           <button className="boton secundario" onClick={() => supabase.auth.signOut()}>Salir</button>
@@ -94,7 +94,7 @@ export default function App() {
     <NotasProvider yo={miembro}>
     <div className="app">
       <header className="cabecera">
-        <a className="marca" href="#/hoy">SantaFe <span>equipo</span></a>
+        <a className="marca" href="#/hoy"><Logo /><span>equipo</span></a>
         <nav className="nav-arriba">
           {rutas.map((r) => (
             <a key={r} href={`#/${r}`} className={r === actual ? "activo" : ""}>{NOMBRES[r]}</a>

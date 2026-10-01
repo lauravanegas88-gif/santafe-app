@@ -92,3 +92,8 @@ export function Puntos({ nota }: { nota: number | null }) {
     </span>
   );
 }
+
+// El logo de Santa Fe Arrendamientos (public/logo.png). Ruta relativa: la app vive en /santafe-app/ y navega con #.
+export function Logo() {
+  return <img className="logo" src="logo.png" alt="Santa Fe Arrendamientos" />;
+}
