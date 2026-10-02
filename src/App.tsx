@@ -10,10 +10,11 @@ import Leads from "./pantallas/Leads";
 import Equipo from "./pantallas/Equipo";
 import Notas from "./pantallas/Notas";
 import Reuniones from "./pantallas/Reuniones";
+import Preguntar from "./pantallas/Preguntar";
 import { leerVisto, NotasProvider, useNotas } from "./notas";
 import { Avatar, Cargando, Logo } from "./ui";
 
-type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "reuniones" | "notas" | "equipo";
+type Ruta = "hoy" | "estrategia" | "contenido" | "pauta" | "leads" | "reuniones" | "notas" | "equipo" | "preguntar";
 
 const ICONOS: Record<Ruta, string> = {
   hoy: "M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10",
@@ -22,12 +23,13 @@ const ICONOS: Record<Ruta, string> = {
   pauta: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   leads: "M16 19v-1a4 4 0 00-4-4H6a4 4 0 00-4 4v1M9 10a3 3 0 100-6 3 3 0 000 6zM22 19v-1a4 4 0 00-3-3.9M16 4.1a3 3 0 010 5.8",
   reuniones: "M9 11l3 3 8-8M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9",
+  preguntar: "M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z",
   notas: "M21 12a8 8 0 01-11.6 7.1L3 21l1.9-6.4A8 8 0 1121 12z",
   equipo: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z",
 };
 
 const NOMBRES: Record<Ruta, string> = {
-  hoy: "Hoy", estrategia: "Estrategia", contenido: "Contenido", pauta: "Pauta", leads: "Leads", reuniones: "Reuniones", notas: "Notas", equipo: "Equipo",
+  hoy: "Hoy", estrategia: "Estrategia", contenido: "Contenido", pauta: "Pauta", leads: "Leads", reuniones: "Reuniones", notas: "Notas", equipo: "Equipo", preguntar: "Pregúntale",
 };
 
 function leerRuta(): Ruta {
@@ -86,7 +88,7 @@ export default function App() {
     );
   }
 
-  // Todos ven todo. Las 6 principales van en el menú; Notas (con el globo) y Equipo, arriba a la derecha.
+  // Todos ven todo. Las 6 principales van en el menú; Pregúntale (la chispa), Notas (con el globo) y Equipo, arriba a la derecha.
   const rutas: Ruta[] = ["hoy", "estrategia", "contenido", "pauta", "leads", "reuniones"];
   const actual = ruta;
 
@@ -101,6 +103,9 @@ export default function App() {
           ))}
         </nav>
         <div className="quien">
+          <a href="#/preguntar" className={`campana${actual === "preguntar" ? " activo" : ""}`} title="Pregúntale a SantaFe" aria-label="Pregúntale a SantaFe">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONOS.preguntar} /></svg>
+          </a>
           <a href="#/notas" className={`campana${actual === "notas" ? " activo" : ""}`} title="Notas del equipo" aria-label="Notas del equipo">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONOS.notas} /></svg>
             <Nuevas />
@@ -121,6 +126,7 @@ export default function App() {
         {actual === "leads" && <Leads />}
         {actual === "reuniones" && <Reuniones />}
         {actual === "notas" && <Notas />}
+        {actual === "preguntar" && <Preguntar miembro={miembro} />}
         {actual === "equipo" && <Equipo miembro={miembro} />}
       </main>
 
