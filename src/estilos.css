@@ -140,11 +140,6 @@ code { font-size: 13px; }
 
 /* ---------- Piezas ---------- */
 .titular { margin: 22px 0 18px; }
-.titular h1 {
-  display: inline; padding: 0 4px; margin-left: -4px;
-  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--sol) 40%, transparent) 62%, color-mix(in srgb, var(--sol) 40%, transparent) 94%, transparent 94%);
-  -webkit-box-decoration-break: clone; box-decoration-break: clone;
-}
 .titular .sub { font-size: 15px; max-width: 640px; margin-top: 10px; }
 .sobre {
   display: table; margin: 0 0 10px; padding: 3px 12px; border-radius: 99px;
